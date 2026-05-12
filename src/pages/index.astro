@@ -1,0 +1,52 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { sections } from '../lib/sections';
+
+const posts = (await getCollection('posts'))
+  .filter((post) => !post.data.draft)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 8);
+---
+<BaseLayout>
+  <main class="wrap">
+    <header class="site-header">
+      <a class="brand" href="/">Rohit Gattani</a>
+      <nav class="nav" aria-label="Main navigation">
+        {sections.map((section) => <a href={`/${section.slug}/`}>{section.title}</a>)}
+      </nav>
+    </header>
+
+    <section class="intro">
+      <h1>Thinking out loud.</h1>
+      <p>
+        Books, musings, memes, and assorted notes from Rohit’s corner of the internet.
+      </p>
+    </section>
+
+    <section class="section-grid" aria-label="Sections">
+      {sections.map((section) => (
+        <a class="section-card" href={`/${section.slug}/`}>
+          <h2>{section.title}</h2>
+          <p>{section.description}</p>
+        </a>
+      ))}
+    </section>
+
+    <section class="posts" aria-label="Latest posts">
+      <h2 class="section-title">Latest</h2>
+      {posts.map((post) => (
+        <article class="post-card">
+          <p class="date">{post.data.pubDate.toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })} · {post.data.category}</p>
+          <h3><a href={`/${post.data.category}/${post.id.split('/').pop()?.replace(/\.md$/, '')}/`}>{post.data.title}</a></h3>
+          <p>{post.data.description}</p>
+          {post.data.tags.length > 0 && (
+            <ul class="tags">
+              {post.data.tags.map((tag) => <li>{tag}</li>)}
+            </ul>
+          )}
+        </article>
+      ))}
+    </section>
+  </main>
+</BaseLayout>

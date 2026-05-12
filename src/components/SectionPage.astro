@@ -1,0 +1,41 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { sectionFor, sections, type SectionSlug } from '../lib/sections';
+
+const { section: sectionSlug } = Astro.props as { section: SectionSlug };
+const section = sectionFor(sectionSlug)!;
+const posts = (await getCollection('posts'))
+  .filter((post) => !post.data.draft && post.data.category === sectionSlug)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+---
+<BaseLayout title={`${section.title} · Rohit Gattani`} description={section.description}>
+  <main class="wrap">
+    <header class="site-header">
+      <a class="brand" href="/">Rohit Gattani</a>
+      <nav class="nav" aria-label="Main navigation">
+        {sections.map((item) => <a aria-current={item.slug === sectionSlug ? 'page' : undefined} href={`/${item.slug}/`}>{item.title}</a>)}
+      </nav>
+    </header>
+
+    <section class="intro compact">
+      <h1>{section.title}</h1>
+      <p>{section.description}</p>
+    </section>
+
+    <section class="posts" aria-label={`${section.title} posts`}>
+      {posts.map((post) => (
+        <article class="post-card">
+          <p class="date">{post.data.pubDate.toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+          <h2><a href={`/${post.data.category}/${post.id.split('/').pop()?.replace(/\.md$/, '')}/`}>{post.data.title}</a></h2>
+          <p>{post.data.description}</p>
+          {post.data.tags.length > 0 && (
+            <ul class="tags">
+              {post.data.tags.map((tag) => <li>{tag}</li>)}
+            </ul>
+          )}
+        </article>
+      ))}
+    </section>
+  </main>
+</BaseLayout>

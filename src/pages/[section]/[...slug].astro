@@ -1,0 +1,27 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { sectionFor } from '../../lib/sections';
+
+export async function getStaticPaths() {
+  const posts = (await getCollection('posts')).filter((post) => !post.data.draft);
+  return posts.map((post) => ({
+    params: { section: post.data.category, slug: post.id.split('/').pop()?.replace(/\.md$/, '') },
+    props: { post }
+  }));
+}
+
+const { post } = Astro.props;
+const section = sectionFor(post.data.category);
+const { Content } = await render(post);
+---
+<BaseLayout title={`${post.data.title} · Rohit Gattani`} description={post.data.description}>
+  <main class="wrap article-wrap">
+    <nav class="back"><a href={`/${post.data.category}/`}>← Back to {section?.title ?? 'section'}</a></nav>
+    <article class="article">
+      <p class="date">{post.data.pubDate.toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })} · {section?.title}</p>
+      <h1>{post.data.title}</h1>
+      <Content />
+    </article>
+  </main>
+</BaseLayout>
